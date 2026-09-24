@@ -1,0 +1,13 @@
+# machine-specific sync record
+.sync-state.json
+
+# never commit secrets or local tool config
+.env
+.env.*
+*.key
+*.pem
+*.token
+secrets/
+.mcp.json
+mcp.json
+*.agent-os-backup

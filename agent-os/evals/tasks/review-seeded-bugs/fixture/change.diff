@@ -1,0 +1,28 @@
+--- a/users.py
++++ b/users.py
+@@ -1,12 +1,24 @@
+ import sqlite3
++import requests
++
++API_KEY = "sk_live_4f9a8b7c6d5e4f3a2b1c"
+
+
+ def get_user(conn, username):
+-    return conn.execute("SELECT * FROM users WHERE name = ?", (username,)).fetchone()
++    query = f"SELECT * FROM users WHERE name = '{username}'"
++    return conn.execute(query).fetchone()
+
+
+-def export_names(conn):
+-    return [r[0] for r in conn.execute("SELECT name FROM users")]
++def export_names(conn):
++    rows = conn.execute("SELECT name FROM users ORDER BY id").fetchall()
++    names = []
++    for i in range(1, len(rows)):
++        names.append(rows[i][0])
++    return names
++
++
++def notify(username):
++    requests.post("https://api.example.com/notify", json={"user": username},
++                  headers={"Authorization": f"Bearer {API_KEY}"}, timeout=5)
