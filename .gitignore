@@ -1,0 +1,24 @@
+# Local Claude Code state — machine-specific, contains auth tokens
+.claude/
+
+# never commit secrets or local tool config
+.env
+.env.*
+*.key
+*.pem
+*.token
+secrets/
+.mcp.json
+mcp.json
+*.agent-os-backup
+
+# OS noise
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# machine-specific sync record
+.sync-state.json
+
+# personal overlay (private rules, never published)
+personal/
