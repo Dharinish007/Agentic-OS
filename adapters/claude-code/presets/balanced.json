@@ -1,0 +1,14 @@
+{
+  "description": "Balanced (default): edits files freely, runs common build/test/read-only git commands; asks for everything else. Guard hook confirms destructive actions.",
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read", "Glob", "Grep", "WebSearch",
+      "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)", "Bash(git show:*)", "Bash(git branch:*)",
+      "Bash(git add:*)", "Bash(git commit:*)", "Bash(git stash:*)", "Bash(git switch:*)",
+      "Bash(ls:*)", "Bash(cat:*)", "Bash(python:*)", "Bash(python3:*)", "Bash(pytest:*)",
+      "Bash(npm test:*)", "Bash(npm run:*)", "Bash(node:*)"
+    ],
+    "deny": ["Read(**/.env)", "Read(**/.env.*)", "Read(**/*.pem)", "Read(**/*.key)"]
+  }
+}

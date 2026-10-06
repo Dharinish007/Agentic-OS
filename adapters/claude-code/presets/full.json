@@ -1,0 +1,8 @@
+{
+  "description": "Full: works end to end without prompts for edits, shell, and web. The guard hook still denies catastrophic actions and asks before destructive or outward-facing ones.",
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": ["Read", "Glob", "Grep", "Edit", "Write", "Bash", "PowerShell", "WebSearch", "WebFetch"],
+    "deny": ["Read(**/.env)", "Read(**/.env.*)", "Read(**/*.pem)", "Read(**/*.key)"]
+  }
+}

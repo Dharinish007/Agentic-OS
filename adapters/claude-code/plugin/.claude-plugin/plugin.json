@@ -1,0 +1,10 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "agent-os",
+  "version": "0.1.0",
+  "description": "Agent OS power pack for Claude Code: guard hooks that block or confirm destructive and secret-leaking actions, reviewer and researcher subagents, and thinking-layer commands.",
+  "author": { "name": "Dharinish007" },
+  "repository": "https://github.com/Dharinish007/Agentic-OS",
+  "license": "MIT",
+  "keywords": ["guardrails", "hooks", "agents", "skills", "safety"]
+}

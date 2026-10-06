@@ -85,15 +85,18 @@ function Sync-File($src, $dst) {
     }
 }
 
-function Sync-Skills($destRoot) {
-    Get-ChildItem -LiteralPath $Skills -Recurse -File | ForEach-Object {
-        $rel = $_.FullName.Substring($Skills.Length).TrimStart('\', '/')
-        Sync-File $_.FullName (Join-Path $destRoot $rel)
-    }
+function Sync-Dir($srcRoot, $destRoot) {
+    Get-ChildItem -LiteralPath $srcRoot -Recurse -File |
+        Where-Object { $_.FullName -notmatch '[\\/]__pycache__[\\/]' -and $_.Name -notlike 'test_*' } |
+        ForEach-Object {
+            $rel = $_.FullName.Substring($srcRoot.Length).TrimStart('\', '/')
+            Sync-File $_.FullName (Join-Path $destRoot $rel)
+        }
 }
 
 $targets = [ordered]@{
-    claude = @{ Name = 'Claude Code'; Dir = 'claude-code'; Rules = "$HOME\.claude\CLAUDE.md"; Skills = "$HOME\.claude\skills" }
+    claude = @{ Name = 'Claude Code'; Dir = 'claude-code'; Rules = "$HOME\.claude\CLAUDE.md"; Skills = "$HOME\.claude\skills"
+               Plugin = "$HOME\.claude\skills\agent-os"; PluginSrc = Join-Path $Root 'adapters\claude-code\plugin' }
     codex  = @{ Name = 'Codex'; Rules = "$HOME\.codex\AGENTS.md"; Skills = "$HOME\.agents\skills" }
     gemini = @{ Name = 'Gemini CLI'; Rules = "$HOME\.gemini\GEMINI.md"; Skills = "$HOME\.agents\skills" }
     cursor = @{ Name = 'Cursor'; Rules = $null; Skills = "$HOME\.agents\skills" }
@@ -107,7 +110,8 @@ foreach ($key in $targets.Keys) {
     Write-Host "`n[$($t.Name)]"
     if ($t.Rules) { Sync-File $Rules $t.Rules }
     else { Write-Host "  [!] global rules: no file-based location - paste AGENTS.md manually (see $notes)" -ForegroundColor Yellow }
-    Sync-Skills $t.Skills
+    Sync-Dir $Skills $t.Skills
+    if ($t.Plugin) { Sync-Dir $t.PluginSrc $t.Plugin }  # power pack: a skills-dir plugin auto-loads
     Write-Host "  [!] MCP config, auth, permissions unchanged - see $notes"
 }
 

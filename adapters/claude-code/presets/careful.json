@@ -1,0 +1,8 @@
+{
+  "description": "Careful: asks before every edit and command. Read-only exploration is free.",
+  "permissions": {
+    "defaultMode": "default",
+    "allow": ["Read", "Glob", "Grep", "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)", "Bash(ls:*)"],
+    "deny": ["Read(**/.env)", "Read(**/.env.*)", "Read(**/*.pem)", "Read(**/*.key)"]
+  }
+}
