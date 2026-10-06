@@ -1,10 +1,11 @@
-"""Agent OS guard: PreToolUse hook for Claude Code.
+"""Agent OS guard: PreToolUse hook for Claude Code and Antigravity.
 
 Reads the hook event (JSON) on stdin and answers with a permission decision:
   deny - catastrophic or secret-leaking actions, blocked outright
   ask  - destructive or outward-facing actions, the user must confirm
   (no output) - everything else, normal permission rules apply
 Always exits 0; the decision travels in JSON so a missing python3 can fall back to python.
+Event shapes: Claude Code sends {tool_name, tool_input}; Antigravity sends {toolCall: {name, args}}.
 """
 import json
 import os
@@ -59,12 +60,19 @@ SECRET_PATTERNS = [
 PLACEHOLDER = re.compile(r"(?i)your|xxx|example|changeme|placeholder|dummy|<|\$\{|\{\{|os\.environ|process\.env")
 
 
+ANTIGRAVITY = False
+
+
 def decide(decision, reason):
-    print(json.dumps({"hookSpecificOutput": {
-        "hookEventName": "PreToolUse",
-        "permissionDecision": decision,
-        "permissionDecisionReason": f"Agent OS guard: {reason}",
-    }}))
+    reason = f"Agent OS guard: {reason}"
+    if ANTIGRAVITY:
+        print(json.dumps({"decision": decision, "reason": reason}))
+    else:
+        print(json.dumps({"hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": decision,
+            "permissionDecisionReason": reason,
+        }}))
     sys.exit(0)
 
 
@@ -97,14 +105,24 @@ def check_command(command):
             decide("ask", f"{why} - confirm this is intended")
 
 
-def check_write(tool_input):
-    path = str(tool_input.get("file_path", ""))
-    name = os.path.basename(path).lower()
+def strings(value, keep):
+    """Yield string values under keys accepted by keep(key), searching nested lists/dicts."""
+    if isinstance(value, dict):
+        for k, v in value.items():
+            if isinstance(v, str) and keep(k):
+                yield v
+            elif isinstance(v, (dict, list)):
+                yield from strings(v, keep)
+    elif isinstance(value, list):
+        for v in value:
+            yield from strings(v, keep)
+
+
+def check_write(path, texts):
+    name = os.path.basename(str(path).replace("\\", "/")).lower()
     if name.startswith(".env") and not name.endswith((".example", ".sample", ".template")):
         return  # .env files are the right place for secrets (keep them git-ignored)
-    texts = [tool_input.get("content", ""), tool_input.get("new_string", "")]
-    texts += [e.get("new_string", "") for e in tool_input.get("edits", []) if isinstance(e, dict)]
-    for text in filter(None, map(str, texts)):
+    for text in filter(None, texts):
         for pattern in SECRET_PATTERNS:
             for m in re.finditer(pattern, text):
                 if not PLACEHOLDER.search(m.group(0)):
@@ -117,12 +135,25 @@ def main():
         event = json.load(sys.stdin)
     except (json.JSONDecodeError, ValueError):
         sys.exit(0)
+    global ANTIGRAVITY
+    if isinstance(event.get("toolCall"), dict):  # Antigravity
+        ANTIGRAVITY = True
+        tool = event["toolCall"].get("name", "")
+        args = event["toolCall"].get("args") or {}
+        if tool == "run_command":
+            check_command(str(args.get("CommandLine", "")))
+        elif tool in ("write_to_file", "replace_file_content", "multi_replace_file_content"):
+            new_text = lambda k: k.endswith("Content") and k != "TargetContent"
+            check_write(args.get("TargetFile", ""), list(strings(args, new_text)))
+        print("{}")  # no decision: normal permission settings apply
+        sys.exit(0)
     tool = event.get("tool_name", "")
     tool_input = event.get("tool_input") or {}
     if tool in ("Bash", "PowerShell"):
         check_command(str(tool_input.get("command", "")))
     elif tool in ("Write", "Edit", "MultiEdit"):
-        check_write(tool_input)
+        check_write(tool_input.get("file_path", ""),
+                    list(strings(tool_input, lambda k: k in ("content", "new_string"))))
     sys.exit(0)
 
 

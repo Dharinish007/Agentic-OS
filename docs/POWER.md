@@ -42,4 +42,7 @@ Apply with `python adapters/claude-code/apply-preset.py <careful|balanced|full|o
 - 🤖 Subagents: `reviewer` (read-only), `researcher` (cited)
 - ⌨️ Commands: `/agent-os:idea`, `/agent-os:next`, `/agent-os:verify`, `/agent-os:review`
 
-Other tools get their power packs in order: Antigravity, Codex, Cursor, OpenCode.
+## Antigravity power pack (built)
+- 🪝 Same guard script via `~/.gemini/config/hooks.json` (run_command, file writes). Autonomy: set in Antigravity settings.
+
+Next power packs, in order: Codex, Cursor, OpenCode.

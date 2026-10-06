@@ -33,7 +33,7 @@ Tool-specific (not here): config file location and format, transport field names
 | Cursor | `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project) |
 | Codex | `codex mcp add` → `~/.codex/config.toml` (`[mcp_servers.<name>]`, TOML) |
 | Gemini CLI | `~/.gemini/settings.json` → `mcpServers` |
-| Antigravity | its own MCP config (UI / `mcp_config.json`) |
+| Antigravity | `~/.gemini/config/mcp_config.json` (global) or `.agents/mcp_config.json` (workspace) |
 
 ## Compatibility matrix
 `✓` configured (verified) · `–` not configured · `?` unknown

@@ -8,10 +8,16 @@ GUARD = Path(__file__).with_name("guard.py")
 
 
 def decision(tool, tool_input):
-    out = subprocess.run([sys.executable, str(GUARD)], input=json.dumps({"tool_name": tool, "tool_input": tool_input}),
-                         capture_output=True, text=True)
+    if tool.startswith("ag:"):  # Antigravity event shape
+        event = {"toolCall": {"name": tool[3:], "args": tool_input}, "conversationId": "t"}
+    else:
+        event = {"tool_name": tool, "tool_input": tool_input}
+    out = subprocess.run([sys.executable, str(GUARD)], input=json.dumps(event), capture_output=True, text=True)
     assert out.returncode == 0, out.stderr
-    return json.loads(out.stdout)["hookSpecificOutput"]["permissionDecision"] if out.stdout.strip() else "pass"
+    data = json.loads(out.stdout) if out.stdout.strip() else {}
+    if tool.startswith("ag:"):
+        return data.get("decision", "pass")
+    return data["hookSpecificOutput"]["permissionDecision"] if data else "pass"
 
 
 CASES = [
@@ -47,6 +53,17 @@ CASES = [
     ("Write", {"file_path": ".env", "content": "API_KEY=sk-ant-api03-abcdefghijklmnopqrstuvwxyz"}, "pass"),
     ("Write", {"file_path": ".env.example", "content": 'API_KEY="sk-ant-api03-abcdefghijklmnopqrstuvwxyz"'}, "deny"),
     ("Read", {"file_path": ".env"}, "pass"),
+    # Antigravity
+    ("ag:run_command", {"CommandLine": "rm -rf ~", "Cwd": "/w"}, "deny"),
+    ("ag:run_command", {"CommandLine": "git reset --hard", "Cwd": "/w"}, "ask"),
+    ("ag:run_command", {"CommandLine": "npm test", "Cwd": "/w"}, "pass"),
+    ("ag:write_to_file", {"TargetFile": r"C:\w\config.py", "CodeContent": 'KEY = "AKIAABCDEFGHIJKLMNOP"'}, "deny"),
+    ("ag:replace_file_content", {"TargetFile": "/w/a.py", "TargetContent": 'k = "sk-ant-api03-abcdefghijklmnopqrstuvwxyz"',
+                                 "ReplacementContent": 'k = os.environ["K"]'}, "pass"),
+    ("ag:multi_replace_file_content", {"TargetFile": "/w/a.py", "ReplacementChunks": [
+        {"TargetContent": "x", "ReplacementContent": 'token = "ghp_' + "b" * 36 + '"'}]}, "deny"),
+    ("ag:write_to_file", {"TargetFile": r"C:\w\.env", "CodeContent": "K=sk-ant-api03-abcdefghijklmnopqrstuvwxyz"}, "pass"),
+    ("ag:view_file", {"AbsolutePath": "/w/.env"}, "pass"),
 ]
 
 failed = 0

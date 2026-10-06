@@ -3,16 +3,16 @@
 Only tool-specific knowledge lives here. Rules and skills are never copied into this folder; `sync.ps1` projects them from the root.
 Flow is one-way: **edit the source here → run `sync.ps1`**. Edits at a destination are reported as conflicts, never pulled back.
 
-## Where each tool reads things (from official docs, 2026-09)
+## Where each tool reads things (from official docs, 2026-09; Antigravity 2026-10)
 
-| | Claude Code | Codex | Gemini CLI | Cursor |
-|---|---|---|---|---|
-| Global rules | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` | `~/.gemini/GEMINI.md` | User Rules in Settings UI (no file) |
-| Project rules | `CLAUDE.md` (can also read `AGENTS.md`) | `AGENTS.md` | `GEMINI.md` (`context.fileName` can add `AGENTS.md`) | `AGENTS.md`, `.cursor/rules/*.mdc` |
-| Global skills | `~/.claude/skills/` | `~/.agents/skills/` | `~/.gemini/skills/` or `~/.agents/skills/` | `~/.agents/skills/`, `~/.cursor/skills/` |
-| MCP config | `claude mcp add` → `~/.claude.json`, `.mcp.json` | `~/.codex/config.toml` (TOML) | `~/.gemini/settings.json` | `~/.cursor/mcp.json` |
+| | Claude Code | Antigravity | Codex | Gemini CLI | Cursor |
+|---|---|---|---|---|---|
+| Global rules | `~/.claude/CLAUDE.md` | `~/.gemini/GEMINI.md` (+ `~/.gemini/config/rules/*.md`) | `~/.codex/AGENTS.md` | `~/.gemini/GEMINI.md` | User Rules in Settings UI (no file) |
+| Project rules | `CLAUDE.md` (can also read `AGENTS.md`) | `AGENTS.md`, `GEMINI.md`, `.agents/rules/*.md` | `AGENTS.md` | `GEMINI.md` (`context.fileName` can add `AGENTS.md`) | `AGENTS.md`, `.cursor/rules/*.mdc` |
+| Global skills | `~/.claude/skills/` | `~/.gemini/config/skills/` | `~/.agents/skills/` | `~/.gemini/skills/` or `~/.agents/skills/` | `~/.agents/skills/`, `~/.cursor/skills/` |
+| MCP config | `claude mcp add` → `~/.claude.json`, `.mcp.json` | `~/.gemini/config/mcp_config.json` | `~/.codex/config.toml` (TOML) | `~/.gemini/settings.json` | `~/.cursor/mcp.json` |
 
-`sync.ps1` targets: rules → the global rules file per tool; skills → `~/.claude/skills` (Claude) and `~/.agents/skills` (shared by Codex, Gemini, Cursor).
+`sync.ps1` targets: rules → the global rules file per tool (Antigravity and Gemini CLI share `~/.gemini/GEMINI.md`); skills → `~/.claude/skills` (Claude), `~/.gemini/config/skills` (Antigravity), `~/.agents/skills` (Codex, Gemini, Cursor). Power packs: Claude Code plugin, Antigravity guard hook.
 
 ## Portability
 

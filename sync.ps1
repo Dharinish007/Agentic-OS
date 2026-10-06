@@ -3,7 +3,7 @@ Projects the Personal Agent OS (this folder) into each agent tool's native locat
 One-way: this folder is the source of truth. Edits made at a destination are never pulled back.
 
   .\sync.ps1                 # all tools
-  .\sync.ps1 -Tool codex     # one tool: claude | codex | gemini | cursor
+  .\sync.ps1 -Tool codex     # one tool: claude | antigravity | codex | gemini | cursor
   .\sync.ps1 -DryRun         # show what would happen, change nothing
   .\sync.ps1 -Force          # replace conflicting files (original saved as <file>.agent-os-backup)
 
@@ -12,7 +12,7 @@ script last wrote (hash recorded in .sync-state.json). Anything else is reported
 Never touches MCP config, credentials, settings, or files it didn't create. Never deletes.
 #>
 param(
-    [ValidateSet('all', 'claude', 'codex', 'gemini', 'cursor')][string]$Tool = 'all',
+    [ValidateSet('all', 'claude', 'antigravity', 'codex', 'gemini', 'cursor')][string]$Tool = 'all',
     [switch]$DryRun,
     [switch]$Force
 )
@@ -30,7 +30,7 @@ if ($Personal.Count -gt 0) {
     $parts += $Personal | ForEach-Object { (Get-Content -LiteralPath $_.FullName -Raw).TrimEnd() }
     # Built inside this repo (git-ignored) even on -DryRun, so the dry run compares real content.
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Built) | Out-Null
-    Set-Content -LiteralPath $Built -Value (($parts -join "`n`n---`n`n") + "`n") -Encoding UTF8 -NoNewline
+    [IO.File]::WriteAllText($Built, (($parts -join "`n`n---`n`n") + "`n"), (New-Object Text.UTF8Encoding $false))
     $Rules = $Built
     Write-Host "Personal overlay: $($Personal.Name -join ', ')"
 }
@@ -97,7 +97,10 @@ function Sync-Dir($srcRoot, $destRoot) {
 $targets = [ordered]@{
     claude = @{ Name = 'Claude Code'; Dir = 'claude-code'; Rules = "$HOME\.claude\CLAUDE.md"; Skills = "$HOME\.claude\skills"
                Plugin = "$HOME\.claude\skills\agent-os"; PluginSrc = Join-Path $Root 'adapters\claude-code\plugin' }
-    codex  = @{ Name = 'Codex'; Rules = "$HOME\.codex\AGENTS.md"; Skills = "$HOME\.agents\skills" }
+    # Antigravity also reads ~/.gemini/GEMINI.md (shared with Gemini CLI; rules are cumulative, so one file avoids duplicates)
+    antigravity = @{ Name = 'Antigravity'; Rules = "$HOME\.gemini\GEMINI.md"; Skills = "$HOME\.gemini\config\skills"
+                     Guard = "$HOME\.gemini\config\agent-os\guard.py"; Hooks = "$HOME\.gemini\config\hooks.json" }
+    codex = @{ Name = 'Codex'; Rules = "$HOME\.codex\AGENTS.md"; Skills = "$HOME\.agents\skills" }
     gemini = @{ Name = 'Gemini CLI'; Rules = "$HOME\.gemini\GEMINI.md"; Skills = "$HOME\.agents\skills" }
     cursor = @{ Name = 'Cursor'; Rules = $null; Skills = "$HOME\.agents\skills" }
 }
@@ -112,6 +115,17 @@ foreach ($key in $targets.Keys) {
     else { Write-Host "  [!] global rules: no file-based location - paste AGENTS.md manually (see $notes)" -ForegroundColor Yellow }
     Sync-Dir $Skills $t.Skills
     if ($t.Plugin) { Sync-Dir $t.PluginSrc $t.Plugin }  # power pack: a skills-dir plugin auto-loads
+    if ($t.Guard) {
+        # Shared guard script + a hooks.json generated with this machine's absolute path to it
+        Sync-File (Join-Path $Root 'adapters\claude-code\plugin\hooks\guard.py') $t.Guard
+        $hooksBuilt = Join-Path $Root '.build\antigravity-hooks.json'
+        $hooks = [ordered]@{ 'agent-os-guard' = [ordered]@{ enabled = $true; PreToolUse = @(
+            [ordered]@{ matcher = 'run_command|write_to_file|replace_file_content|multi_replace_file_content'
+                        hooks = @([ordered]@{ type = 'command'; command = "python `"$($t.Guard -replace '\\', '/')`""; timeout = 10 }) }) } }
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $hooksBuilt) | Out-Null
+        [IO.File]::WriteAllText($hooksBuilt, ($hooks | ConvertTo-Json -Depth 8), (New-Object Text.UTF8Encoding $false))
+        Sync-File $hooksBuilt $t.Hooks
+    }
     Write-Host "  [!] MCP config, auth, permissions unchanged - see $notes"
 }
 

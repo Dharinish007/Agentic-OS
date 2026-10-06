@@ -30,8 +30,14 @@ One open standard that makes a single agent, or a fleet of them, behave like a s
 | `personal/` | *Git-ignored.* Your private rules (`*.md`), appended after `AGENTS.md` on sync |
 
 ## Supported tools
-Claude Code · Codex · Gemini CLI · Cursor (skills; global rules pasted manually).
-Planned, in order: Antigravity, OpenCode, more.
+| Tool | Rules | Skills | Power pack |
+|---|---|---|---|
+| Claude Code | ✅ | ✅ | ✅ plugin: guard hook, subagents, commands, autonomy presets |
+| Antigravity | ✅ | ✅ | ✅ guard hook |
+| Codex | ✅ | ✅ | planned |
+| Gemini CLI | ✅ | ✅ | – |
+| Cursor | manual paste | ✅ | planned |
+| OpenCode | planned | planned | planned |
 
 ## Quick start (Windows / PowerShell)
 ```powershell
@@ -39,7 +45,7 @@ git clone https://github.com/Dharinish007/Agentic-OS.git
 cd Agentic-OS
 .\sync.ps1 -DryRun          # preview
 .\sync.ps1                  # all tools
-.\sync.ps1 -Tool claude     # one tool
+.\sync.ps1 -Tool claude     # one tool: claude | antigravity | codex | gemini | cursor
 ```
 Sync never deletes, never touches MCP config or credentials, and never overwrites a file you edited (it reports a conflict instead; `-Force` keeps a backup).
 
@@ -50,4 +56,4 @@ Put private rules in `personal/*.md`. They are appended after the public rules o
 Every skill has a status in [evals/SCORECARD.md](evals/SCORECARD.md): ✅ proven · 🟡 promising · ➖ neutral · ⚠️ regressed · ⬜ untested. Regenerate with `python evals/scorecard.py`.
 
 ## Status
-Early. Built: core rules, 16 skills (incl. thinking layer and `init-project`), Claude Code power pack (guard hook, subagents, commands, autonomy presets), eval runner + scorecard. Next: wider eval coverage → more tool power packs (Antigravity, Codex, Cursor, OpenCode) → memory → publishing.
+Early. Built: core rules, 16 skills (incl. thinking layer and `init-project`), Claude Code power pack (guard hook, subagents, commands, autonomy presets), Antigravity power pack (guard hook), eval runner + scorecard. Next: wider eval coverage → more tool power packs (Codex, Cursor, OpenCode) → memory → publishing.
