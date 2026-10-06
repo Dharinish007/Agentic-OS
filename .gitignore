@@ -4,6 +4,7 @@
 # never commit secrets or local tool config
 .env
 .env.*
+!.env.example
 *.key
 *.pem
 *.token
