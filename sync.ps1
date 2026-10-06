@@ -22,6 +22,19 @@ $StatePath = Join-Path $Root '.sync-state.json'
 $Rules = Join-Path $Root 'AGENTS.md'
 $Skills = Join-Path $Root 'skills'
 
+# Personal overlay: personal/*.md (git-ignored) is appended after the public rules.
+$Personal = @(Get-ChildItem -Path (Join-Path $Root 'personal') -Filter '*.md' -File -ErrorAction SilentlyContinue | Sort-Object Name)
+if ($Personal.Count -gt 0) {
+    $Built = Join-Path $Root '.build\rules.md'
+    $parts = @((Get-Content -LiteralPath $Rules -Raw).TrimEnd())
+    $parts += $Personal | ForEach-Object { (Get-Content -LiteralPath $_.FullName -Raw).TrimEnd() }
+    # Built inside this repo (git-ignored) even on -DryRun, so the dry run compares real content.
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Built) | Out-Null
+    Set-Content -LiteralPath $Built -Value (($parts -join "`n`n---`n`n") + "`n") -Encoding UTF8 -NoNewline
+    $Rules = $Built
+    Write-Host "Personal overlay: $($Personal.Name -join ', ')"
+}
+
 $state = @{}
 if (Test-Path -LiteralPath $StatePath) {
     (Get-Content -LiteralPath $StatePath -Raw | ConvertFrom-Json).PSObject.Properties | ForEach-Object { $state[$_.Name] = $_.Value }

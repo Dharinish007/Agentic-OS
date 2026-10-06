@@ -22,3 +22,6 @@ desktop.ini
 
 # personal overlay (private rules, never published)
 personal/
+
+# generated rules (public + personal overlay)
+.build/
