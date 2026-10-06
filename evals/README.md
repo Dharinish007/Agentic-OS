@@ -18,7 +18,15 @@ evals/
 - **B: Agent OS.** Run `sync.ps1` for that tool.
 - Keep everything else identical: same tool version, model, effort setting, plugins/MCPs, permission mode, prompt text. Record them in the run's notes. Plugins that inject their own instructions are a confound; disable them for both conditions or keep them in both.
 
-## Procedure
+## Automated runner (Claude Code)
+```
+python evals/run.py vague-idea what-next     # A and B, 1 run each
+python evals/run.py --all --runs 3           # full suite
+```
+Runs `claude -p` headlessly in fresh temp dirs. Condition B places `AGENTS.md` as `CLAUDE.md` and `skills/` as `.claude/skills/` in the run dir only (project-level, git-excluded), so global config is untouched. Transcripts go to `evals/runs/` (git-ignored); rows are appended to `results.csv` with `pass=?` unless a `check/` grader decides. Grade `?` rows by reading `final.md`/`transcript.jsonl` against TASK.md and edit the row.
+Caveats: no human can answer questions mid-run (one-shot); tools outside the allowlist in `run.py` are denied (count shown as `denials`); plugins and user-level config load in both conditions.
+
+## Manual procedure
 1. Pick a task. Copy `tasks/<id>/fixture/` to a fresh scratch dir outside this repo (`git init` there if the task says so). Never run an agent inside this repo.
 2. Start a **new session** in that dir and paste the prompt from `TASK.md` verbatim. Don't help mid-run unless the task says so. If you must intervene, record it as a failure.
 3. When the agent stops, grade: run `check/` if present, apply the TASK.md criteria, read the transcript for the "why".

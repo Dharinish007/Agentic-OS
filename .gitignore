@@ -25,3 +25,7 @@ personal/
 
 # generated rules (public + personal overlay)
 .build/
+
+# eval transcripts (may contain local paths)
+evals/runs/
+__pycache__/
