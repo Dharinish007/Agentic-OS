@@ -24,7 +24,7 @@ One open standard that makes a single agent, or a fleet of them, behave like a s
 | `skills/` | Procedures in the Agent Skills format (`SKILL.md`), loaded on demand |
 | `adapters/` | Tool-specific notes: where each tool reads rules, skills, MCP config |
 | `mcp/registry.md` | Catalog of MCP servers: purpose, risks, auth method (never secrets) |
-| `evals/` | A/B evaluation tasks and results |
+| `evals/` | A/B evaluation tasks, results, and the generated [SCORECARD.md](evals/SCORECARD.md) |
 | `LEARNINGS.md` | Lesson inbox; promoted only through the `learn` skill |
 | `sync.ps1` | One-way installer into each tool's native locations |
 | `personal/` | *Git-ignored.* Your private rules (`*.md`), appended after `AGENTS.md` on sync |
@@ -46,5 +46,8 @@ Sync never deletes, never touches MCP config or credentials, and never overwrite
 ## Personalize
 Put private rules in `personal/*.md`. They are appended after the public rules on your machine and never committed.
 
+## Evidence
+Every skill has a status in [evals/SCORECARD.md](evals/SCORECARD.md): ✅ proven · 🟡 promising · ➖ neutral · ⚠️ regressed · ⬜ untested. Regenerate with `python evals/scorecard.py`.
+
 ## Status
-Early. Core rules and skills exist; evals are defined but not yet run. Roadmap: thinking layer → evals → per-tool power packs → memory → publishing.
+Early. Built: core rules, 16 skills (incl. thinking layer and `init-project`), Claude Code power pack (guard hook, subagents, commands, autonomy presets), eval runner + scorecard. Next: wider eval coverage → more tool power packs (Antigravity, Codex, Cursor, OpenCode) → memory → publishing.

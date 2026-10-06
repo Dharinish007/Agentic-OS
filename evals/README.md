@@ -23,11 +23,11 @@ evals/
 python evals/run.py vague-idea what-next     # A and B, 1 run each
 python evals/run.py --all --runs 3           # full suite
 ```
-Runs `claude -p` headlessly in fresh temp dirs. Condition B places `AGENTS.md` as `CLAUDE.md` and `skills/` as `.claude/skills/` in the run dir only (project-level, git-excluded), so global config is untouched. Transcripts go to `evals/runs/` (git-ignored); rows are appended to `results.csv` with `pass=?` unless a `check/` grader decides. Grade `?` rows by reading `final.md`/`transcript.jsonl` against TASK.md and edit the row.
+Runs `claude -p` headlessly in fresh temp dirs. Condition B places `AGENTS.md` as `.claude/CLAUDE.md` and `skills/` as `.claude/skills/` in the run dir only (project-level, git-excluded), so global config is untouched. Transcripts go to `evals/runs/` (git-ignored); rows are appended to `results.csv` with `pass=?` unless a `check/` grader decides. Grade `?` rows by reading `final.md`/`transcript.jsonl` against TASK.md and edit the row.
 Caveats: no human can answer questions mid-run (one-shot); tools outside the allowlist in `run.py` are denied (count shown as `denials`); plugins and user-level config load in both conditions.
 
 ## In-app runner (Claude desktop, no CLI login)
-`python evals/run.py <tasks> --prepare` only builds the scratch dirs and prints `{dir, prompt}`. The orchestrating session then starts one fresh subagent per row with an identical wrapper ("work in <dir>; the user says: <prompt>"). B adds one line pointing to `CLAUDE.md` and `.claude/skills/`. Subagents have a different system prompt than a top-level session, and B is told to read the rules rather than loading them natively, so treat results as indicative.
+`python evals/run.py <tasks> --prepare` only builds the scratch dirs and prints `{dir, prompt}`. The orchestrating session then starts one fresh subagent per row with an identical wrapper ("work in <dir>; the user says: <prompt>"). B adds one line pointing to `.claude/CLAUDE.md` and `.claude/skills/`. Subagents have a different system prompt than a top-level session, and B is told to read the rules rather than loading them natively, so treat results as indicative.
 
 ## Manual procedure
 1. Pick a task. Copy `tasks/<id>/fixture/` to a fresh scratch dir outside this repo (`git init` there if the task says so). Never run an agent inside this repo.
@@ -35,6 +35,9 @@ Caveats: no human can answer questions mid-run (one-shot); tools outside the all
 3. When the agent stops, grade: run `check/` if present, apply the TASK.md criteria, read the transcript for the "why".
 4. Append a row to `results.csv`.
 5. Repeat: **3 runs per condition** (alternate A/B to spread time-of-day and rate-limit effects).
+
+## Scorecard
+`python evals/scorecard.py` regenerates `SCORECARD.md`: per-task A vs B and an evidence status per skill (from each TASK.md `Tests:` line). Run it after every batch of results.
 
 ## Reading results
 - Report per task: `passes/runs` for each condition (e.g. A 1/3, B 3/3). Also note **pass^3**, meaning all 3 passed, because reliability matters more than a lucky run.

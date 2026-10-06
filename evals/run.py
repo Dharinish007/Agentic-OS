@@ -4,7 +4,7 @@
   python evals/run.py --all --runs 3                # every task, 3 runs per condition
   python evals/run.py what-next --conditions B      # one condition
 
-Each run gets a fresh scratch dir outside the repo. Condition B places AGENTS.md as CLAUDE.md and the
+Each run gets a fresh scratch dir outside the repo. Condition B places AGENTS.md as .claude/CLAUDE.md and the
 skills in .claude/skills inside that scratch dir only (git-excluded), so global tool config is never touched.
 Transcripts land in evals/runs/ (git-ignored); one row per run is appended to results.csv with
 pass="?" unless a hidden grader decides it. Grade the rest by reading the transcript against TASK.md.
@@ -59,12 +59,13 @@ def prepare(task, condition, work):
     if script:
         subprocess.run([BASH, "-c", script], cwd=work, check=True)
     if condition == "B":
-        shutil.copy(ROOT / "AGENTS.md", work / "CLAUDE.md")
+        # .claude/CLAUDE.md is also read as project memory and keeps the repo's own root CLAUDE.md free
         shutil.copytree(ROOT / "skills", work / ".claude" / "skills")
+        shutil.copy(ROOT / "AGENTS.md", work / ".claude" / "CLAUDE.md")
         exclude = work / ".git" / "info" / "exclude"
         if exclude.parent.is_dir():
             with exclude.open("a") as f:
-                f.write("\nCLAUDE.md\n.claude/\n")
+                f.write("\n.claude/\n")
     return prompt_of(task_md)
 
 
