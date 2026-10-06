@@ -19,7 +19,7 @@ evals/
 - Keep everything else identical: same tool version, model, effort setting, plugins/MCPs, permission mode, prompt text. Record them in the run's notes. Plugins that inject their own instructions are a confound; disable them for both conditions or keep them in both.
 
 ## Procedure
-1. Pick a task. Copy `tasks/<id>/fixture/` to a fresh scratch dir outside this repo (`git init` there if the task says so). Never run an agent inside `agent-os/`.
+1. Pick a task. Copy `tasks/<id>/fixture/` to a fresh scratch dir outside this repo (`git init` there if the task says so). Never run an agent inside this repo.
 2. Start a **new session** in that dir and paste the prompt from `TASK.md` verbatim. Don't help mid-run unless the task says so. If you must intervene, record it as a failure.
 3. When the agent stops, grade: run `check/` if present, apply the TASK.md criteria, read the transcript for the "why".
 4. Append a row to `results.csv`.
