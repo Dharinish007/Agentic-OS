@@ -26,6 +26,9 @@ python evals/run.py --all --runs 3           # full suite
 Runs `claude -p` headlessly in fresh temp dirs. Condition B places `AGENTS.md` as `CLAUDE.md` and `skills/` as `.claude/skills/` in the run dir only (project-level, git-excluded), so global config is untouched. Transcripts go to `evals/runs/` (git-ignored); rows are appended to `results.csv` with `pass=?` unless a `check/` grader decides. Grade `?` rows by reading `final.md`/`transcript.jsonl` against TASK.md and edit the row.
 Caveats: no human can answer questions mid-run (one-shot); tools outside the allowlist in `run.py` are denied (count shown as `denials`); plugins and user-level config load in both conditions.
 
+## In-app runner (Claude desktop, no CLI login)
+`python evals/run.py <tasks> --prepare` only builds the scratch dirs and prints `{dir, prompt}`. The orchestrating session then starts one fresh subagent per row with an identical wrapper ("work in <dir>; the user says: <prompt>"). B adds one line pointing to `CLAUDE.md` and `.claude/skills/`. Subagents have a different system prompt than a top-level session, and B is told to read the rules rather than loading them natively, so treat results as indicative.
+
 ## Manual procedure
 1. Pick a task. Copy `tasks/<id>/fixture/` to a fresh scratch dir outside this repo (`git init` there if the task says so). Never run an agent inside this repo.
 2. Start a **new session** in that dir and paste the prompt from `TASK.md` verbatim. Don't help mid-run unless the task says so. If you must intervene, record it as a failure.

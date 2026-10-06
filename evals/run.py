@@ -101,18 +101,23 @@ def main():
     ap.add_argument("--runs", type=int, default=1)
     ap.add_argument("--conditions", default="AB")
     ap.add_argument("--model", default="")
+    ap.add_argument("--prepare", action="store_true",
+                    help="only create scratch dirs and print them as JSON (for in-app subagent runs)")
     args = ap.parse_args()
     tasks = sorted(p.name for p in TASKS.iterdir() if p.is_dir()) if args.all else args.tasks
     if not tasks:
         ap.error("name tasks or pass --all")
 
-    version = subprocess.run([CLAUDE, "--version"], capture_output=True, text=True).stdout.strip()
+    version = "" if args.prepare else subprocess.run([CLAUDE, "--version"], capture_output=True, text=True).stdout.strip()
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     for task in tasks:
         for run in range(1, args.runs + 1):
             for cond in args.conditions:  # alternate A/B within each run
                 work = Path(tempfile.mkdtemp(prefix=f"agent-os-eval-{task}-{cond}{run}-"))
                 prompt = prepare(task, cond, work)
+                if args.prepare:
+                    print(json.dumps({"task": task, "condition": cond, "run": run, "dir": str(work), "prompt": prompt}))
+                    continue
                 print(f"[{task} {cond}{run}] {work}", flush=True)
                 events, stderr = run_agent(prompt, work, args.model)
                 passed, check_out = grade(task, work)
